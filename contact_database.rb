@@ -35,7 +35,7 @@ class ContactDatabase
     def get_all_contacts
       info = load_contacts
         info.each do |arr|
-          puts "#{arr[0]}: #{arr[1]} (#{arr[2]})"
+          puts "#{arr[0]}: #{arr[1]} #{arr[2]} (#{arr[3]})"
       end
         puts "---"
         puts "#{generate_id} records total"
