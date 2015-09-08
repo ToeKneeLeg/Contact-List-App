@@ -3,40 +3,45 @@ require 'csv'
 
 class ContactDatabase
   class << self
-    def get_id
-      content = ContactDatabase.load_contacts
+
+    #to generate a new id for the line based on the total number of lines
+    def generate_id
+      content = load_contacts
       content.length
     end
 
+    #returns the array of the array of contacts
     def load_contacts
       CSV.open('contacts.csv', 'r').readlines.each{|file| file}
     end
-
+    
+    #parse the array into hash in order to search by id
     def show_contact(id)
-      lines_in_array = ContactDatabase.load_contacts
-      id_hash = {}
-      lines_in_array.each do |arr|
-        the_id = arr.shift
-        the_rest = arr
-        id_hash[the_id] = the_rest
+      contacts_in_array = load_contacts
+      contacts = {}
+      contacts_in_array.each do |contact|
+        id_from_array = contact.shift
+        data_from_array = contact
+        contacts[id_from_array] = data_from_array
       end
-      if id_hash[id.to_s] != nil 
-         puts id_hash[id.to_s]
+      if contacts[id.to_s] != nil 
+         puts contacts[id.to_s]
       else
         puts "not found"
       end
     end
 
+    #lists all contact in a user friendly format
     def get_all_contacts
-      file_name = "contacts.csv"
-      CSV.open(file_name, 'r').readlines.each do |file|
-        puts file.inspect
+      info = load_contacts
+        info.each do |arr|
+          puts "#{arr[0]}: #{arr[1]} (#{arr[2]})"
       end
         puts "---"
-        puts ContactDatabase.get_id
+        puts "#{generate_id} records total"
     end
 
-         
+    #allows us to writes input into the CSV file    
     def write_new_contact_to_file(write_to_file)
       file_name = "contacts.csv"
       CSV.open(file_name, "a") do |file|

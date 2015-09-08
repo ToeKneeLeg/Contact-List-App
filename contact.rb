@@ -9,73 +9,39 @@ class Contact
     @email = email
   end
  
-  def to_s
-    
-  end
- 
-  ## Class Methods
   class << self
     def create(name, email)
       # TODO: Will initialize a contact as well as add it to the list of contacts
       new_contact = Contact.new(name, email)
       database_input = []
-      new_user_id = "1" + (ContactDatabase.get_id.to_i + 1).to_s
+
+      new_user_id = "1" + (ContactDatabase.generate_id.to_i + 1).to_s
       database_input[0] = new_user_id
       database_input[1] = new_contact.name
       database_input[2] = new_contact.email
       ContactDatabase.write_new_contact_to_file(database_input)
       puts "Your user id is #{new_user_id}."
     end
- 
-    def find(term)
-      # TODO: Will find and return contacts that contain the term in the first name, last name or email
+
+    def to_string(input)
+          puts "#{input[0]}: #{input[1]} (#{input[2]})"   
     end
  
-    def all
-      # TODO: Return the list of contacts, as is
-    end
-    
-    def show(id)
-      # TODO: Show a contact, based on ID
-    end
-    
-  end
- 
-end
-
-class Application
-
-end
-
-class Menu
-
-  def initialize()
-  end
-
-  private
-
-  ##Class Methods
-  class << self
-    def process_input(input, input_2)
-      if input == "help"
-        run_menu
-      elsif input == "new"
-        new_contact
-      elsif input == "list"
-        list_contact
-      elsif input == "show"
-        show_contact(input_2)
-      elsif input == "find"
-        find_contact(input_2)
+    def find_contact(input)
+      contact_list = CSV.open('contacts.csv', "r").readlines
+      contact_list.each do |line|
+        if line.grep(/#{input}/)[0] != nil
+          puts to_string(line)
+        end
       end
     end
-
-    def run_menu
-      puts "Here is a list of available commands:"
-      puts "    new  - Create a new contact"
-      puts "    list - List all contacts"
-      puts "    show - Show a contact"
-      puts "    find - Find a contact"
+ 
+    def list_all_contact
+      ContactDatabase.get_all_contacts
+    end
+    
+    def show_contact_by_id(id)
+      ContactDatabase.show_contact(id)
     end
 
     def new_contact
@@ -84,32 +50,39 @@ class Menu
       new_username = gets.chomp
       puts "An email address:"
       new_email = gets.chomp
-      Contact.create(new_username, new_email)      
-    end
+      create(new_username, new_email)      
+    end    
+  end 
+end
 
-    def list_contact
-      ContactDatabase.get_all_contacts
-    end
+class Menu
 
-    def show_contact(id)
-      ContactDatabase.show_contact(id)
-    end
-    
-    def find_contact(input)
-      contact_list = CSV.open('contacts.csv', "r").readlines
-      # wanted_contact = []
-      matched = nil 
-      contact_list.each do |line|
-        if line.grep(input) != nil
-        puts matched.inspect
+  private
+
+  class << self
+    #to facilitate and redirect command from commandline inputs
+    def process_input(command, option)
+      if command == "help"
+        run_menu
+      elsif command == "new"
+        Contact.new_contact
+      elsif command == "list" 
+        Contact.list_all_contact
+      elsif command == "show"
+        Contact.show_contact_by_id(option)
+      elsif command == "find"
+        Contact.find_contact(option)
       end
     end
-      # end
-        # if wanted_contact == nil 
-        #   puts "Not found"
-        # else 
-          # puts matched.inspect
-    end
+
+    #to provide an interface for the menu when help is the input
+    def run_menu
+      puts "Here is a list of available commands:"
+      puts "    new  - Create a new contact"
+      puts "    list - List all contacts"
+      puts "    show - Show a contact"
+      puts "    find - Find a contact"
+    end    
   end
 end 
 
