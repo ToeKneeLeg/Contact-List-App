@@ -1,81 +1,26 @@
-require_relative 'contact_database.rb'
-
-class Contact
+class Contact < ActiveRecord::Base
+  validates :f_name, presence: true
+  validates :l_name, presence: true
+  validates :email, presence: true
+end 
  
-  attr_accessor :name, :email
-
-  def initialize(f_name, l_name, email)
-    @first_name = f_name
-    @last_name = l_name
-    @email = email
-  end
- 
-  class << self
-
-    def create(f_name, l_name, email)
-      # TODO: Will initialize a contact as well as add it to the list of contacts
-      database_input = []
-
-      new_user_id = "1" + (ContactDatabase.generate_id.to_i + 1).to_s
-      database_input[0] = new_user_id
-      database_input[1] = f_name
-      database_input[2] = l_name
-      database_input[3] = email
-      ContactDatabase.write_new_contact_to_file(database_input)
-      puts "Your user id is #{new_user_id}."
-    end
-
-    def to_string(input)
-          puts "#{input[0]}: #{input[1]} #{input[2]} (#{input[3]})"   
-    end
- 
-    def find_contact(input)
-      contact_list = CSV.open('contacts.csv', "r").readlines
-      contact_list.each do |line|
-        if line.grep(/#{input}/)[0] != nil
-          puts to_string(line)
-        end
-      end
-    end
- 
-    def list_all_contact
-      ContactDatabase.get_all_contacts
-    end
-    
-    def show_contact_by_id(id)
-      ContactDatabase.show_contact(id)
-    end
-
-    def new_contact
-      puts "To create a new contact, please provide the follow:"
-      puts "A user's first name:"
-      new_user_fname = gets.chomp
-      puts "A user's last name:"
-      new_user_lname = gets.chomp
-      puts "An email address:"
-      new_email = gets.chomp
-      create(new_user_fname, new_user_lname, new_email)      
-    end    
-  end 
-end
-
-class Menu
+class Application
 
   private
 
   class << self
     #to facilitate and redirect command from commandline inputs
-    def process_input(command, option)
+    def menu_input(command, option)
       if command == "help"
         run_menu
       elsif command == "new"
-        Contact.new_contact
+        new_contact
       elsif command == "list" 
-        Contact.list_all_contact
+        list_all(Contact.all)
       elsif command == "show"
-        Contact.show_contact_by_id(option)
+        to_string(Contact.find(option))
       elsif command == "find"
-        Contact.find_contact(option)
+        find_contact(option)
       end
     end
 
@@ -86,7 +31,45 @@ class Menu
       puts "    list - List all contacts"
       puts "    show - Show a contact"
       puts "    find - Find a contact"
-    end    
+    end  
+
+    def new_contact
+      puts "To create a new contact, please provide the follow:"
+      puts "A user's first name:"
+      new_user_fname = gets.chomp
+      puts "A user's last name:"
+      new_user_lname = gets.chomp
+      puts "An email address:"
+      new_email = gets.chomp
+      new_contact = Contact.create!(f_name: new_user_fname, l_name: new_user_lname, email: new_email)
+      puts
+      puts "Your new id is #{new_contact.id}."
+      puts
+    end
+
+    def find_contact(input)
+      arr_of_contact_objects = Contact.all
+      contact_list = []
+
+      arr_of_contact_objects.each do |object|
+          contact_list << ["#{object.id}: #{object.f_name} #{object.l_name} (#{object.email})"]
+      end
+
+      contact_list.each do |line|
+        if line.grep(/#{input}/)[0] != nil
+          puts line
+        end
+      end
+    end
+
+    def list_all(input)
+      input.each do |object|
+        to_string(object)
+      end
+    end
+
+    def to_string(object)
+      puts "#{object.id}: #{object.f_name} #{object.l_name} (#{object.email})"
+    end
   end
 end 
-
